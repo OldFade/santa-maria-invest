@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Santa Maria — Учёт предметов</title>
+<link rel="icon" type="image/png" href="assets/smrp-logo.png">
+<link rel="apple-touch-icon" href="assets/smrp-logo.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark"><img src="assets/smrp-logo.png" alt="Santa Maria"></span><div><b>Santa Maria</b><small>Инвестиции</small></div></div>
+    <nav>
+      <button class="nav active" data-view="dashboard">◈ <span>Главная</span></button>
+      <button class="nav" data-view="items">▣ <span>Предметы</span></button>
+      <button class="nav" data-view="history">◷ <span>Журнал действий</span></button>
+    </nav>
+    <div class="sidebar-foot">
+  <div class="save-box">
+    <div class="save-box-title">Портфель</div>
+    <button class="save-action" id="exportBtn" type="button"><span class="save-icon">↓</span><span><b>Сохранить портфель</b><small>Скачать сейв</small></span></button>
+    <button class="save-action" id="importBtn" type="button"><span class="save-icon">↑</span><span><b>Загрузить портфель</b><small>Восстановить сейв</small></span></button>
+    <input id="importFile" type="file" accept=".smrp,.json,application/json" hidden>
+  </div>
+  <div class="youtube-wrap">
+    <div class="youtube-tip"><span class="tip-dot"></span>Нравится сайт? Загляни на канал и подпишись ✦</div>
+    <a class="youtube-link" href="https://www.youtube.com/@old_smrp" target="_blank" rel="noopener" aria-label="Открыть YouTube-канал OldFade">
+      <span class="yt-icon">▶</span>
+      <span class="yt-copy"><b>Создатель - OldFade</b><small>Tom_Crystal #20980</small></span>
+      <span class="yt-arrow">↗</span>
+    </a>
+  </div>
+  <div class="local-note">Локальное хранение<br><span>Сохрани файл, чтобы перенести сейв</span></div>
+</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><div class="hero-badges"><div class="hero-badge lime">SANTA MARIA RP · ИНВЕСТИЦИИ</div><div class="hero-badge gold">ЛУЧШИЙ ПРОМОКОД <strong>/PROMO CRYSTAL</strong></div></div><p id="pageSubtitle">Следи за стоимостью своих предметов и потенциальной прибылью.</p></div>
+      <button class="primary" id="addBtn">＋ Добавить предмет</button>
+    </header>
+
+    <section id="dashboardView" class="view">
+      <div class="stats">
+        <div class="stat"><span>Вложено</span><strong id="invested">0 $</strong></div>
+        <div class="stat"><span>Текущая стоимость</span><strong id="current">0 $</strong></div>
+        <div class="stat"><span>Потенциальная прибыль</span><strong id="profit">0 $ <small id="profitPct">(0%)</small></strong></div>
+        <div class="stat"><span>Предметов</span><strong id="count">0</strong></div>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="panel-head"><div><h2>График стоимости инвестиций</h2></div><span class="chart-hint">Автообновление</span></div>
+          <canvas id="chart" height="250"></canvas><div id="chartTooltip" class="chart-tooltip hidden"></div>
+          <div id="emptyChart" class="empty">Добавь предметы и обнови их цены, чтобы увидеть график.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h2>Лучшие позиции по доходности</h2></div></div>
+          <div id="topItems"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div><h2>Все предметы</h2><p>Текущая оценка твоего портфеля</p></div><button class="ghost" data-view="items">Открыть все →</button></div>
+        <div id="dashboardTable"></div>
+      </div>
+    </section>
+
+    <section id="itemsView" class="view hidden">
+      <div class="toolbar"><input id="search" placeholder="Поиск...">
+        <div class="filter-control filter-select" id="dateFilterWrap">
+          <select id="dateFilter" aria-label="Фильтр по дате покупки" tabindex="-1" aria-hidden="true"><option value="all">Все даты</option><option value="today">Сегодня</option><option value="7">Последние 7 дней</option><option value="30" selected>Последние 30 дней</option><option value="older">Более 30 дней</option></select>
+          <button class="filter-trigger" id="dateFilterTrigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="dateFilterValue">Последние 30 дней</span><span class="filter-chevron">⌄</span></button>
+          <div class="filter-menu" id="dateFilterMenu" role="listbox" aria-label="Дата покупки">
+            <button type="button" class="filter-option" data-filter-value="all">Все даты</button>
+            <button type="button" class="filter-option" data-filter-value="today">Сегодня</button>
+            <button type="button" class="filter-option" data-filter-value="7">Последние 7 дней</button>
+            <button type="button" class="filter-option selected" data-filter-value="30">Последние 30 дней</button>
+            <button type="button" class="filter-option" data-filter-value="older">Более 30 дней</button>
+          </div>
+        </div>
+        <div class="filter-control filter-select" id="categoryFilterWrap">
+          <select id="categoryFilter" aria-label="Фильтр по категории" tabindex="-1" aria-hidden="true"><option value="all" selected>Все категории</option><option value="Недвижимость">Недвижимость</option><option value="Транспорт">Транспорт</option><option value="Одежда">Одежда</option><option value="Предметы">Предметы</option><option value="Прочее">Прочее</option></select>
+          <button class="filter-trigger" id="categoryFilterTrigger" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="categoryFilterValue">Все категории</span><span class="filter-chevron">⌄</span></button>
+          <div class="filter-menu" id="categoryFilterMenu" role="listbox" aria-label="Категория">
+            <button type="button" class="filter-option selected" data-filter-value="all">Все категории</button>
+            <button type="button" class="filter-option" data-filter-value="Недвижимость">Недвижимость</button>
+            <button type="button" class="filter-option" data-filter-value="Транспорт">Транспорт</button>
+            <button type="button" class="filter-option" data-filter-value="Одежда">Одежда</button>
+            <button type="button" class="filter-option" data-filter-value="Предметы">Предметы</button>
+            <button type="button" class="filter-option" data-filter-value="Прочее">Прочее</button>
+          </div>
+        </div>
+        <button class="primary update-prices-btn" id="updatePricesBtn" type="button">↻ Обновить цены</button></div>
+      <div class="price-freshness" id="priceFreshness"></div><div class="panel"><div id="itemsTable"></div></div>
+    </section>
+
+    <section id="historyView" class="view hidden">
+      <div class="panel"><div class="panel-head"><div><h2>Журнал действий</h2><p>Покупки, удаления и изменения цен сохраняются автоматически.</p></div></div><div id="historyTable"></div></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-card">
+    <div class="modal-head"><div><h2 id="modalTitle">Добавить предмет</h2><p>Заполни данные покупки.</p></div><button class="close" id="closeModal">×</button></div>
+    <form id="itemForm">
+      <input type="hidden" id="itemId">
+      <label>Название предмета<input id="name" required placeholder="Например: BMW M5"></label>
+      <label>Категория
+        <input type="hidden" id="category" value="Прочее" required>
+        <div class="category-select" id="categorySelect" data-value="Прочее">
+          <button class="category-trigger" id="categoryTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span id="categoryValue">Прочее</span>
+            <span class="category-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div class="category-menu" id="categoryMenu" role="listbox" aria-label="Категория">
+            <button type="button" class="category-option" data-value="Недвижимость" role="option"><span class="cat-dot cat-realestate"></span><span>Недвижимость</span></button>
+            <button type="button" class="category-option" data-value="Транспорт" role="option"><span class="cat-dot cat-transport"></span><span>Транспорт</span></button>
+            <button type="button" class="category-option" data-value="Одежда" role="option"><span class="cat-dot cat-clothes"></span><span>Одежда</span></button>
+            <button type="button" class="category-option" data-value="Предметы" role="option"><span class="cat-dot cat-items"></span><span>Предметы</span></button>
+            <button type="button" class="category-option" data-value="Прочее" role="option"><span class="cat-dot cat-other"></span><span>Прочее</span></button>
+          </div>
+        </div>
+      </label>
+      <div class="two">
+        <label>Дата покупки
+          <input id="date" type="hidden" required>
+          <div class="date-select" id="dateSelect">
+            <button class="date-trigger" id="dateTrigger" type="button" aria-haspopup="dialog" aria-expanded="false">
+              <span id="dateValue">Выберите дату</span>
+              <span class="date-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="date-menu" id="dateMenu" role="dialog" aria-label="Выбор даты">
+              <div class="date-menu-head">
+                <button type="button" class="date-nav" id="datePrev" aria-label="Предыдущий месяц">‹</button>
+                <strong id="dateMonthLabel"></strong>
+                <button type="button" class="date-nav" id="dateNext" aria-label="Следующий месяц">›</button>
+              </div>
+              <div class="date-weekdays">
+                <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+              </div>
+              <div class="date-grid" id="dateGrid"></div>
+              <button type="button" class="date-today" id="dateToday">Сегодня</button>
+            </div>
+          </div>
+        </label>
+        <label>Количество<input id="qty" type="number" min="1" step="1" value="1" required></label>
+      </div>
+      <label>Цена покупки за 1 шт.<input id="buyPrice" type="number" min="0" step="1" required placeholder="25000000"></label>
+      <label>Текущая цена за 1 шт.<input id="currentPrice" type="number" min="0" step="1" required placeholder="30000000"></label>
+      <label>Фотография предмета<span class="upload"><input id="image" type="file" accept="image/*"><span id="imageLabel">Нажми, чтобы выбрать изображение</span></span></label>
+      <label>Комментарий <textarea id="note" rows="3" placeholder="Необязательно"></textarea></label>
+      <button class="primary full" type="submit">Сохранить предмет</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal hidden" id="priceUpdateModal">
+  <div class="modal-card bulk-modal-card">
+    <div class="modal-head"><div><h2>Обновить цены</h2><p>Укажи актуальные цены на выбранную дату. Изменения попадут в историю и журнал действий.</p></div><button class="close" id="closePriceUpdateModal" type="button">×</button></div>
+    <form id="bulkPriceForm">
+      <label>Дата обновления<input id="priceUpdateDate" type="date" required></label>
+      <div id="bulkPrices" class="bulk-prices"></div>
+      <button class="primary full" type="submit">Сохранить все цены</button>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
